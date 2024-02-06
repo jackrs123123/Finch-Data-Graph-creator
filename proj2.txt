@@ -1,0 +1,122 @@
+"""
+CS/BIOS 112 - Program Design I
+
+describe
+project
+here
+
+File: project_02.py
+
+@author:   Joaquin RS
+UIC NetId: jrami86
+Due Date:  10/26
+"""
+
+# gene dist wants to take any individual finch that we choose from either species! 
+
+# species named in the data file finches.csv 
+finch1 = 'G.conirostris_Espanola' # 0 - 9
+finch2 = 'G.conirostris_Genovesa' # 10 - 19
+finch3 = 'G.difficilis' # 20 - 29
+finch4 = 'G.magnirostris' # 31 - 
+outgroup = 'L.noctis' # 30
+
+def read_input(fileName):
+    '''Returns information from finches.csv by combining pairs of rows for the same species.'''
+    import csv
+    finches = []
+    with open(fileName, 'r') as finch_info:
+        reader = list(csv.reader(finch_info))
+        row = 0
+        while row < len(reader):
+            inner_finches = []
+            inner_finches.append(reader[row][0])
+            inner_finches.append(reader[row][1])
+            inner_finches.append(reader[row][3])
+            inner_finches.append(reader[row+1][3]) # row+1 accounts for the second member of the pair
+            inner_finches.append(float(reader[row][4])) # return float value for beak score
+            inner_finches.append(float(reader[row+1][4]))
+            inner_finches.append(reader[row][5])
+            finches.append(inner_finches)
+            row += 2
+        return finches
+
+
+
+def allele_dist(gene1, gene2):
+    '''Calculates the hamming distance between two strings as an integer.'''
+    # specific comments
+    distance = 0
+    if gene1 == gene2:
+        return distance
+    else:
+        for pos in range(len(gene1)):
+            if gene1[pos] != gene2[pos]:
+                distance += 1
+        return distance
+
+
+
+def gene_dist(finch1, finch2):
+    '''Computes average hamming distance for four pairs of genes.'''
+    ham_dist1 = allele_dist(finch1[2], finch2[2]) # each ham_dist covers a combination of alleles
+    ham_dist2 = allele_dist(finch1[2], finch2[3]) # every finch is an individual with two gene sequences
+    ham_dist3 = allele_dist(finch1[3], finch2[2])
+    ham_dist4 = allele_dist(finch1[3], finch2[3])
+    return (ham_dist1 + ham_dist2 + ham_dist3 + ham_dist4) / 4.0
+
+
+
+def beak_dist(finch1, finch2):
+    '''Returns beak distance between two finches'''
+    individual1 = abs(finch1[4] - finch2[5]) # average is taken in the same method as previous function
+    individual2 = abs(finch1[4] - finch2[4]) 
+    individual3 = abs(finch1[5] - finch2[4])
+    individual4 = abs(finch1[5] - finch2[5])
+    return (individual1 + individual2 + individual3 + individual4) / 4.0
+
+
+
+def outgroup_distance(finches, speciesName, outgroupName):
+    '''Takes user input for which species gets compared with output group by calling previous functions.'''
+    finch_lists = finches # intentionally redundant reassigning since i accidenally had it equal to calling the first function.
+    gene_list = []
+    beak_list = []
+    outgroup_name = ''
+    for sublist in finch_lists:
+        if sublist[0] == outgroupName:
+            outgroup_name = sublist
+    for sublist in finch_lists:
+        if sublist[0] == speciesName:
+            gene_list.append(gene_dist(sublist, outgroup_name))
+            beak_list.append(beak_dist(sublist, outgroup_name))
+    return gene_list, beak_list
+
+
+
+def plot_data(finch1, finch2, finch3, finch4, outgroup):
+    '''Plots each of four species gene distance and beak distance from the outgroup as x and y axes.'''
+    import matplotlib.pyplot as plt
+    gene1,beak1 = outgroup_distance(read_input('finches.csv'), finch1, outgroup)
+    gene2,beak2 = outgroup_distance(read_input('finches.csv'), finch2, outgroup)
+    gene3,beak3 = outgroup_distance(read_input('finches.csv'), finch3, outgroup)
+    gene4,beak4 = outgroup_distance(read_input('finches.csv'), finch4, outgroup)
+    plt.plot(gene1, beak1, 'r.')
+    plt.plot(gene2, beak2, 'g.')
+    plt.plot(gene3, beak3, 'b.')
+    plt.plot(gene4, beak4, 'm.')
+    plt.title("Finches vs. Outgroup Data")
+    plt.xlabel("Average Gene Distance From Outgroup")
+    plt.ylabel("Average Beak Distance From Outgroup")
+    plt.legend(['G.conirostris_Espanola', 'G.conirostris_Genovesa', 'G.difficilis', 'G.magnirostris'])
+    plt.savefig('plot1.png')
+
+
+
+''' Add code here to call/use/verify above functions and plot results '''
+
+print(plot_data(finch1, finch2, finch3, finch4, outgroup))
+
+''' 
+The plot appears to show Espanola and Magnirostris having a higher average beak distance from the outgroup with a lower average gene distance. This contradicts how Genesova and Difficilis have a higher average gene distance with a lower average beak distance. This again points to how Espanola and Magnirostris, while mixed together, were visually seperated from Genesova and Difficilis which were mixed as well.
+'''
