@@ -1,9 +1,7 @@
 """
 CS/BIOS 112 - Program Design I
 
-describe
-project
-here
+Reads information from Finch data in csv file to compare chosen finch species’ average hamming distances and beak distances on Matplotlib graph.
 
 File: project_02.py
 
